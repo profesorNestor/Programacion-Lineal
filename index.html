@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<!--
+MIT License
+
+Copyright (c) 2025 Gemini & Msc Néstor Fabio Montoya
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiSolver Pro - Solucionador de Programación Lineal</title>
+
+    <!-- LIBRERÍAS EXTERNAS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        tags: 'ams'
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ESTILOS GLOBALES Y TEMAS DE COLOR (v4.6) --- */
+        :root {
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Lexend', sans-serif;
+            --transition-speed: 0.4s;
+            --transition-fast: 0.2s;
+        }
+
+        /* Tema Claro (Default) */
+        html {
+            --bg-primary: #e9eef5;
+            --bg-secondary-raw: 255, 255, 255;
+            --bg-accent-raw: 238, 242, 255;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-header-table: #1a202c;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --accent-color: #4f46e5;
+            --accent-hover: #6366f1;
+            --shadow-color: rgba(79, 70, 229, 0.15);
+            --neon-glow: #a5b4fc;
+        }
+
+        /* Tema Oscuro */
+        html.dark {
+            --bg-primary: #0f172a;
+            --bg-secondary-raw: 30, 41, 59;
+            --bg-accent-raw: 51, 65, 85;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-header-table: #f1f5f9;
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent-color: #818cf8;
+            --accent-hover: #a7affb;
+            --shadow-color: rgba(99, 102, 241, 0.2);
+            --neon-glow: #818cf8;
+        }
+
+        /* Tema Neón */
+        html.neon {
+            --bg-primary: #000000;
+            --bg-secondary-raw: 10, 10, 30;
+            --bg-accent-raw: 26, 26, 58;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0f0;
+            --text-header-table: #e0e0ff;
+            --border-color: rgba(0, 253, 220, 0.2);
+            --accent-color: #00fddc;
+            --accent-hover: #8affec;
+            --shadow-color: rgba(0, 253, 220, 0.25);
+            --neon-glow: #00fddc;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+        }
+        
+        .card {
+            background: rgba(var(--bg-secondary-raw), 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px -5px var(--shadow-color);
+            transition: all var(--transition-speed) ease;
+            border-radius: 1.5rem;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px -5px var(--shadow-color);
+        }
+        
+        .btn {
+            @apply py-3 px-6 rounded-xl font-bold text-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-4;
+            focus:ring-offset-color: var(--bg-primary);
+            --tw-ring-color: var(--neon-glow);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 0 25px -8px var(--neon-glow), 0 4px 10px -3px rgba(0,0,0,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 0 35px -8px var(--neon-glow), 0 8px 15px -3px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background-color: rgba(var(--bg-accent-raw), 0.8);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: rgba(var(--bg-secondary-raw), 0.9);
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            color: var(--accent-color);
+        }
+
+        .input-field {
+            background-color: rgba(var(--bg-accent-raw), 0.7);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-fast) ease;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+        .input-field:focus {
+            background-color: rgba(var(--bg-secondary-raw), 0.8);
+            --tw-ring-color: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--shadow-color), 0 0 15px -5px var(--neon-glow) inset;
+        }
+
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(var(--bg-primary-raw, 0), 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+            opacity: 0; visibility: hidden;
+            transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
+        }
+        .modal-backdrop.show { opacity: 1; visibility: visible; }
+        
+        .modal-content {
+            background: rgba(var(--bg-secondary-raw), 0.75);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 60px -15px var(--shadow-color);
+            border-radius: 1.5rem;
+            width: 98%;
+            height: 96vh;
+            display: flex; flex-direction: column;
+            transform: scale(0.9) translateY(30px);
+            transition: transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1), opacity var(--transition-speed) ease;
+        }
+        .modal-backdrop.show .modal-content { transform: scale(1) translateY(0); }
+        .modal-header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-body { padding: 2rem; overflow-y: auto; }
+        .modal-close {
+            background: none; border: none; font-size: 2rem; cursor: pointer;
+            color: var(--text-secondary); transition: all var(--transition-fast) ease;
+        }
+        .modal-close:hover { color: var(--accent-color); transform: rotate(90deg) scale(1.1); }
+        
+        .latex-preview {
+            font-family: 'Times New Roman', serif; font-size: 1.1em; min-height: 3rem;
+            display:flex; align-items:center; justify-content:center;
+            background-color: rgba(var(--bg-accent-raw), 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            min-width: 150px;
+            max-width: 400px;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(0.9); } }
+        .fade-out { animation: fadeOut 0.4s ease-out forwards; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 25px -8px var(--neon-glow); } 50% { transform: scale(1.05); box-shadow: 0 0 40px -5px var(--neon-glow); } }
+
+        #solve-button { animation: pulse 2.5s infinite; }
+
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="app" class="container mx-auto p-4 md:p-6 lg:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-black font-lexend text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 animate-fadeIn" style="animation-delay: 0.2s;">
+                OptiSolver Pro
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-400 mt-3 animate-fadeIn" style="animation-delay: 0.4s;">La Obra Maestra de la Optimización Lineal</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div id="input-panel" class="card p-6 lg:p-8 lg:col-span-3 animate-fadeIn" style="animation-delay: 0.6s;">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold font-lexend text-gray-800 dark:text-white flex items-center"><i class="fas fa-drafting-compass mr-4 text-indigo-400"></i>Definir Problema</h2>
+                    <div class="relative flex items-center space-x-3">
+                        <button id="theme-toggle" class="btn btn-secondary !p-3 rounded-full" title="Cambiar Tema"><i class="fas fa-palette"></i></button>
+                        <button id="help-button" class="btn btn-secondary !p-3 rounded-full" title="Ayuda y Guía"><i class="fas fa-question-circle"></i></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label for="num-variables" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Variables</label>
+                        <input type="number" id="num-variables" class="input-field mt-1 block w-full rounded-lg shadow-sm p-3" value="2" min="2" max="10">
+                    </div>
+                    <div>
+                        <label for="objective-type" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Objetivo</label>
+                        <select id="objective-type" class="input-field mt-1 block w-full rounded-lg shadow-sm p-3">
+                            <option value="maximize">Maximizar</option>
+                            <option value="minimize">Minimizar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <label for="objective-function" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Función Objetivo (Z)</label>
+                    <div class="flex items-center space-x-3">
+                        <input type="text" id="objective-function" class="input-field flex-grow rounded-lg">
+                        <div id="objective-preview" class="latex-preview"></div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Restricciones</label>
+                    <div id="constraints-container" class="space-y-4 mt-3"></div>
+                    <button id="add-constraint" class="mt-4 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
+                        <i class="fas fa-plus-circle mr-1"></i> Añadir Restricción
+                    </button>
+                </div>
+
+                <div class="flex items-center mt-10 space-x-4">
+                    <button id="solve-button" class="btn btn-primary w-full"><i class="fas fa-rocket mr-3"></i>Resolver</button>
+                    <button id="clear-button" class="btn btn-secondary !p-3" title="Limpiar Formulario"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+
+            <div id="results-summary-panel" class="card p-6 lg:p-8 lg:col-span-2 hidden">
+                <h2 class="text-3xl font-bold font-lexend text-gray-800 dark:text-white mb-6"><i class="fas fa-poll mr-4 text-indigo-400"></i>Resumen de la Solución</h2>
+                <div id="summary-output" class="space-y-4 text-lg"></div>
+                 <div id="results-buttons-container" class="mt-8 space-y-4">
+                    <button id="show-details-button" class="btn btn-primary w-full hidden"><i class="fas fa-microscope mr-3"></i>Ver Análisis Completo</button>
+                    <button id="show-graph-button" class="btn btn-secondary w-full hidden"><i class="fas fa-chart-pie mr-3"></i>Ver Gráfico Interactivo</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal de Temas -->
+        <div id="theme-modal" class="modal-backdrop hidden">
+            <div class="modal-content w-auto h-auto !p-6 !rounded-2xl">
+                <h3 class="text-xl font-bold font-lexend text-center mb-4">Seleccionar Tema</h3>
+                <div class="flex space-x-4">
+                    <button class="theme-select-btn flex flex-col items-center" data-theme="light">
+                        <div class="w-20 h-12 rounded-lg bg-gray-200 border-2 border-gray-400 flex items-center justify-center"><i class="fas fa-sun text-gray-700 text-xl"></i></div>
+                        <span class="mt-2 text-sm font-semibold">Claro</span>
+                    </button>
+                    <button class="theme-select-btn flex flex-col items-center" data-theme="dark">
+                        <div class="w-20 h-12 rounded-lg bg-gray-800 border-2 border-gray-600 flex items-center justify-center"><i class="fas fa-moon text-white text-xl"></i></div>
+                        <span class="mt-2 text-sm font-semibold">Oscuro</span>
+                    </button>
+                    <button class="theme-select-btn flex flex-col items-center" data-theme="neon">
+                        <div class="w-20 h-12 rounded-lg bg-black border-2 border-purple-500 flex items-center justify-center"><i class="fas fa-star text-cyan-400 text-xl"></i></div>
+                        <span class="mt-2 text-sm font-semibold">Neón</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="help-modal" class="modal-backdrop hidden">
+             <div class="modal-content w-full max-w-4xl h-auto max-h-[90vh]">
+                <div class="modal-header flex justify-between items-center">
+                    <h3 class="text-3xl font-bold font-lexend text-indigo-400"><i class="fas fa-book-open mr-3"></i>Guía de Uso y Ejemplos</h3>
+                    <button id="close-help-modal" class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body prose dark:prose-invert max-w-none">
+                    <h4><i class="fas fa-pencil-alt mr-2"></i>Formato de Entrada</h4>
+                    <p><strong>Función Objetivo:</strong> Escriba la función a optimizar. Use <code>x1, x2, ..., xN</code> para las variables. No es necesario usar <code>*</code> para la multiplicación. Ejemplos: <code>3x1 + 5x2</code>, <code>10x1 - 2x2 + 8x3</code>.</p>
+                    <p><strong>Restricciones:</strong> Escriba cada restricción en una línea. Use los operadores <code>&lt;=</code>, <code>&gt;=</code>, o <code>=</code>. Ejemplo: <code>2x1 + 4x2 &lt;= 12</code>.</p>
+                    
+                    <h4 class="mt-6"><i class="fas fa-cogs mr-2"></i>Métodos de Solución</h4>
+                    <ul>
+                        <li><strong>Método Gráfico:</strong> Se activa automáticamente para problemas de 2 variables. Muestra la región factible y la solución óptima de forma visual en un gráfico interactivo.</li>
+                        <li><strong>Método Simplex:</strong> ¡Totalmente renovado! Ahora utiliza el <strong>Método de Dos Fases</strong>, permitiendo resolver problemas de maximización y minimización con restricciones <code>&lt;=</code>, <code>&gt;=</code> y <code>=</code> de forma robusta.</li>
+                    </ul>
+                    
+                    <h4 class="mt-6"><i class="fas fa-lightbulb mr-2"></i>Ejemplo Clásico (Maximización)</h4>
+                    <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700">
+                        <p><strong>Objetivo:</strong> Maximizar <code>Z = 3x1 + 5x2</code></p>
+                        <p><strong>Restricciones:</strong></p>
+                        <ul class="list-disc list-inside">
+                            <li><code>x1 &lt;= 4</code></li>
+                            <li><code>2x2 &lt;= 12</code></li>
+                            <li><code>3x1 + 2x2 &lt;= 18</code></li>
+                        </ul>
+                        <p><strong>Solución Óptima:</strong> Z = 36 en (x₁=2, x₂=6)</p>
+                    </div>
+                    <button id="load-example-btn" class="btn btn-primary mt-6 py-2 px-4 rounded-lg text-base">
+                        <i class="fas fa-download mr-2"></i>Cargar Ejemplo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="details-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <div class="modal-header flex justify-between items-center">
+                    <h3 class="text-3xl font-bold font-lexend text-indigo-400"><i class="fas fa-chart-line mr-3"></i>Análisis Completo de la Solución</h3>
+                    <div class="flex items-center space-x-4">
+                         <div id="color-palette-container" class="hidden">
+                            <button id="color-palette-btn" class="btn btn-secondary !p-3 rounded-full" title="Cambiar Colores del Gráfico"><i class="fas fa-palette"></i></button>
+                        </div>
+                        <button id="export-pdf-button" class="btn btn-secondary !py-2 !px-4 !text-base" title="Exportar a PDF"><i class="fas fa-file-pdf mr-2"></i>Exportar</button>
+                        <button id="close-details-modal" class="modal-close" title="Cerrar">&times;</button>
+                    </div>
+                </div>
+                <div id="solution-output" class="modal-body grid grid-cols-1 lg:grid-cols-5 gap-8"></div>
+            </div>
+        </div>
+        
+        <!-- Modal solo para el gráfico -->
+        <div id="graph-only-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <div class="modal-header flex justify-between items-center">
+                    <h3 class="text-3xl font-bold font-lexend text-indigo-400"><i class="fas fa-expand mr-3"></i>Gráfico Interactivo</h3>
+                    <button id="close-graph-only-modal" class="modal-close" title="Cerrar">&times;</button>
+                </div>
+                <div id="graph-only-container" class="modal-body !p-2 flex-grow">
+                    <!-- El gráfico se inyectará aquí -->
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center p-8 mt-12 text-sm text-[var(--text-secondary)] border-t border-[var(--border-color)]">
+            <p>Autor: Msc Néstor Fabio Montoya y Gemini AI</p>
+            <p class="mt-1 opacity-75">&copy; 2025 OptiSolver Pro. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+
+    <script>
+    /**
+     * simplex.js (v2.1 - Lógica Corregida)
+     *
+     * Justificación de la elección:
+     * Esta es una implementación completamente nueva y robusta del MÉTODO SIMPLEX DE DOS FASES.
+     * Corrige los errores de la versión anterior y ahora puede manejar correctamente:
+     * 1.  Maximización y Minimización. (Lógica de minimización y Z-valor corregida)
+     * 2.  Restricciones de tipo <=, >=, e =.
+     * 3.  Detección de casos de no factibilidad y problemas no acotados.
+     * 4.  Sigue siendo totalmente didáctico, almacenando y mostrando las tablas de cada iteración.
+     */
+    class SimplexSolver {
+        constructor(model, precision = 1e-9) {
+            this.model = model;
+            this.precision = precision;
+            this.iterations = [];
+            this.phase1Iterations = [];
+            
+            this.numDecisionVars = model.variables.length;
+            this.numConstraints = model.constraints.length;
+
+            this.varNames = [...model.variables];
+            this.basis = [];
+        }
+
+        solve() {
+            this._buildInitialTableau();
+
+            if (this.numArtificial > 0) {
+                const phase1Success = this._runPhase1();
+                if (!phase1Success) {
+                    return { feasible: false, bounded: true, result: 0, message: "Problema no factible. La Fase I ha finalizado con un valor > 0." };
+                }
+                this._setupPhase2();
+            }
+
+            return this._runPhase2();
+        }
+
+        _buildInitialTableau() {
+            let slackVars = 0, surplusVars = 0, artificialVars = 0;
+            this.model.constraints.forEach(c => {
+                if (c.op === '<=') slackVars++;
+                else if (c.op === '>=') { surplusVars++; artificialVars++; }
+                else if (c.op === '=') artificialVars++;
+            });
+
+            this.numSlack = slackVars;
+            this.numSurplus = surplusVars;
+            this.numArtificial = artificialVars;
+            
+            const numTableauCols = this.numDecisionVars + this.numSlack + this.numSurplus + this.numArtificial + 1; // +1 for RHS
+            this.tableau = Array(this.numConstraints + 1).fill(null).map(() => Array(numTableauCols).fill(0));
+
+            let sCount = 0, uCount = 0, aCount = 0;
+            this.model.constraints.forEach((c, i) => {
+                // Coeficientes de variables de decisión
+                this.model.variables.forEach((v, j) => {
+                    this.tableau[i][j] = c.vars[v] || 0;
+                });
+                // RHS
+                this.tableau[i][numTableauCols - 1] = c.b;
+
+                if (c.op === '<=') {
+                    const slackCol = this.numDecisionVars + sCount;
+                    this.tableau[i][slackCol] = 1;
+                    this.varNames[slackCol] = `s${sCount + 1}`;
+                    this.basis[i] = slackCol;
+                    sCount++;
+                } else if (c.op === '>=') {
+                    const surplusCol = this.numDecisionVars + this.numSlack + uCount;
+                    const artificialCol = this.numDecisionVars + this.numSlack + this.numSurplus + aCount;
+                    this.tableau[i][surplusCol] = -1;
+                    this.tableau[i][artificialCol] = 1;
+                    this.varNames[surplusCol] = `u${uCount + 1}`;
+                    this.varNames[artificialCol] = `a${aCount + 1}`;
+                    this.basis[i] = artificialCol;
+                    uCount++;
+                    aCount++;
+                } else { // '='
+                    const artificialCol = this.numDecisionVars + this.numSlack + this.numSurplus + aCount;
+                    this.tableau[i][artificialCol] = 1;
+                    this.varNames[artificialCol] = `a${aCount + 1}`;
+                    this.basis[i] = artificialCol;
+                    aCount++;
+                }
+            });
+
+            // Fila de la función objetivo Z
+            const objRow = this.tableau[this.numConstraints];
+            // Para maximización, se minimiza -Z, por lo que los coeficientes se multiplican por -1.
+            // Para minimización, se usan los coeficientes tal cual.
+            const multiplier = this.model.objective.direction === 'maximize' ? -1 : 1;
+            this.model.variables.forEach((v, j) => {
+                objRow[j] = (this.model.objective.vars[v] || 0) * multiplier;
+            });
+        }
+
+        _runPhase1() {
+            // Crear una copia de la fila Z original
+            const originalObjRow = this.tableau[this.numConstraints].slice();
+
+            // Construir la función objetivo W de la Fase I (maximizar -W)
+            const wRow = Array(this.tableau[0].length).fill(0);
+            for (let i = 0; i < this.numConstraints; i++) {
+                const basisVarName = this.varNames[this.basis[i]];
+                if (basisVarName && basisVarName.startsWith('a')) {
+                    for (let j = 0; j < this.tableau[0].length; j++) {
+                        wRow[j] -= this.tableau[i][j];
+                    }
+                }
+            }
+            this.tableau[this.numConstraints] = wRow;
+            this.phase1Iterations.push(JSON.parse(JSON.stringify(this.tableau)));
+
+            // Iterar Simplex para Fase I (siempre es maximizar -W, así que se busca el más negativo)
+            while (true) {
+                const pivotCol = this._findPivotColumnMaximize(this.tableau[this.numConstraints]);
+                if (pivotCol === -1) break;
+
+                const pivotRow = this._findPivotRow(pivotCol);
+                if (pivotRow === -1) return false; // Infeasible
+
+                this._pivot(pivotRow, pivotCol);
+                this.phase1Iterations.push(JSON.parse(JSON.stringify(this.tableau)));
+            }
+
+            // Comprobar si la Fase I fue exitosa
+            if (Math.abs(this.tableau[this.numConstraints][this.tableau[0].length - 1]) > this.precision) {
+                return false; // Infeasible
+            }
+
+            this.originalObjRow = originalObjRow;
+            return true;
+        }
+
+        _setupPhase2() {
+            // Restaurar la función objetivo Z original
+            this.tableau[this.numConstraints] = this.originalObjRow;
+
+            // Poner la fila Z en forma canónica
+            for (let i = 0; i < this.numConstraints; i++) {
+                const basisVarIndex = this.basis[i];
+                const zCoeff = this.tableau[this.numConstraints][basisVarIndex];
+                if (Math.abs(zCoeff) > this.precision) {
+                    for (let j = 0; j < this.tableau[0].length; j++) {
+                        this.tableau[this.numConstraints][j] -= zCoeff * this.tableau[i][j];
+                    }
+                }
+            }
+        }
+
+        _runPhase2() {
+            this.iterations.push(JSON.parse(JSON.stringify(this.tableau)));
+            while (true) {
+                // **FIX:** Usar la regla de pivote correcta para maximización o minimización
+                const pivotCol = (this.model.objective.direction === 'maximize')
+                    ? this._findPivotColumnMaximize(this.tableau[this.numConstraints])
+                    : this._findPivotColumnMinimize(this.tableau[this.numConstraints]);
+
+                if (pivotCol === -1) {
+                    return this._extractSolution(true, true); // Óptimo
+                }
+
+                const pivotRow = this._findPivotRow(pivotCol);
+                if (pivotRow === -1) {
+                    return this._extractSolution(true, false); // No acotado
+                }
+
+                this._pivot(pivotRow, pivotCol);
+                this.iterations.push(JSON.parse(JSON.stringify(this.tableau)));
+            }
+        }
+
+        // Para maximización (o maximizar -W en Fase I), se busca el coeficiente más negativo.
+        _findPivotColumnMaximize(objRow) {
+            let minVal = -this.precision;
+            let pivotCol = -1;
+            for (let j = 0; j < objRow.length - 1; j++) {
+                if (objRow[j] < minVal) {
+                    minVal = objRow[j];
+                    pivotCol = j;
+                }
+            }
+            return pivotCol;
+        }
+        
+        // Para minimización, se busca el coeficiente más positivo.
+        _findPivotColumnMinimize(objRow) {
+            let maxVal = this.precision;
+            let pivotCol = -1;
+            for (let j = 0; j < objRow.length - 1; j++) {
+                if (objRow[j] > maxVal) {
+                    maxVal = objRow[j];
+                    pivotCol = j;
+                }
+            }
+            return pivotCol;
+        }
+
+        _findPivotRow(pivotCol) {
+            let minRatio = Infinity;
+            let pivotRow = -1;
+            const rhsCol = this.tableau[0].length - 1;
+            for (let i = 0; i < this.numConstraints; i++) {
+                const pivotColVal = this.tableau[i][pivotCol];
+                if (pivotColVal > this.precision) {
+                    const ratio = this.tableau[i][rhsCol] / pivotColVal;
+                    if (ratio < minRatio && ratio >= -this.precision) {
+                        minRatio = ratio;
+                        pivotRow = i;
+                    }
+                }
+            }
+            return pivotRow;
+        }
+
+        _pivot(pivotRow, pivotCol) {
+            const pivotValue = this.tableau[pivotRow][pivotCol];
+            for (let j = 0; j < this.tableau[0].length; j++) {
+                this.tableau[pivotRow][j] /= pivotValue;
+            }
+
+            for (let i = 0; i < this.tableau.length; i++) {
+                if (i !== pivotRow) {
+                    const multiplier = this.tableau[i][pivotCol];
+                    for (let j = 0; j < this.tableau[0].length; j++) {
+                        this.tableau[i][j] -= multiplier * this.tableau[pivotRow][j];
+                    }
+                }
+            }
+            this.basis[pivotRow] = pivotCol;
+        }
+
+        _extractSolution(feasible, bounded) {
+            const solution = { feasible, bounded, iterations: this.iterations, phase1Iterations: this.phase1Iterations, solver: this };
+            if (!feasible) {
+                solution.message = "Problema no factible.";
+                return solution;
+            }
+            if(!bounded) {
+                solution.message = "Problema no acotado.";
+                return solution;
+            }
+
+            const rhsCol = this.tableau[0].length - 1;
+            let result = this.tableau[this.numConstraints][rhsCol];
+
+            // **FIX:** El valor en el tableau para maximización es Z_max, no -Z_max.
+            // El método de construcción de la tabla (multiplicar por -1 al inicio) y el pivoteo
+            // ya resultan en el valor correcto de Z en la celda RHS de la fila objetivo.
+            // Por lo tanto, la inversión de signo que estaba aquí era incorrecta.
+            if (this.model.objective.direction === 'maximize') {
+                // No se hace nada. El valor es correcto.
+            }
+            
+            // Para minimización, el valor también es correcto.
+            solution.result = result;
+
+            this.model.variables.forEach((v, i) => {
+                const basisRow = this.basis.indexOf(i);
+                if (basisRow !== -1) {
+                    solution[v] = this.tableau[basisRow][rhsCol];
+                } else {
+                    solution[v] = 0;
+                }
+            });
+
+            return solution;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const getEl = (id) => document.getElementById(id);
+        const numVariablesSelect = getEl('num-variables');
+        const objectiveTypeSelect = getEl('objective-type');
+        const objectiveFunctionInput = getEl('objective-function');
+        const objectivePreview = getEl('objective-preview');
+        const constraintsContainer = getEl('constraints-container');
+        const addConstraintBtn = getEl('add-constraint');
+        const solveBtn = getEl('solve-button');
+        const clearBtn = getEl('clear-button');
+        const resultsSummaryPanel = getEl('results-summary-panel');
+        const summaryOutput = getEl('summary-output');
+        const showDetailsButton = getEl('show-details-button');
+        const showGraphButton = getEl('show-graph-button');
+        const helpModal = getEl('help-modal');
+        const helpButton = getEl('help-button');
+        const closeHelpModalButton = getEl('close-help-modal');
+        const loadExampleButton = getEl('load-example-btn');
+        const themeToggleButton = getEl('theme-toggle');
+        const themeModal = getEl('theme-modal');
+        const detailsModal = getEl('details-modal');
+        const closeDetailsModalButton = getEl('close-details-modal');
+        const solutionOutput = getEl('solution-output');
+        const graphOnlyModal = getEl('graph-only-modal');
+        const closeGraphOnlyModal = getEl('close-graph-only-modal');
+        const graphOnlyContainer = getEl('graph-only-container');
+        const exportPdfButton = getEl('export-pdf-button');
+        const colorPaletteContainer = getEl('color-palette-container');
+        const colorPaletteBtn = getEl('color-palette-btn');
+
+        let numVariables = 2;
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+        let lastProblemData = null;
+        let lastResultData = null;
+        
+        const themes = ['light', 'dark', 'neon'];
+        const colorSchemes = [
+            ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3'],
+            ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33'],
+            ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c']
+        ];
+        let currentColorSchemeIndex = 0;
+
+        const applyTheme = (theme) => {
+            document.documentElement.className = theme;
+            localStorage.setItem('theme', theme);
+        };
+
+        const calculatePolygonArea = (vertices) => {
+            if (!vertices || vertices.length < 3) return 0;
+            let area = 0;
+            let j = vertices.length - 1;
+            for (let i = 0; i < vertices.length; i++) {
+                area += (vertices[j].x + vertices[i].x) * (vertices[j].y - vertices[i].y);
+                j = i;
+            }
+            return Math.abs(area / 2);
+        };
+
+        const updateLatex = (inputElement, previewElement) => {
+            let expression = inputElement.value.trim();
+            if (!expression) {
+                previewElement.innerHTML = '';
+                return;
+            }
+            expression = expression.replace(/</g, '<').replace(/>/g, '>');
+            expression = expression.replace(/<=/g, '\\le').replace(/>=/g, '\\ge');
+            expression = expression.replace(/\*/g, ' \\cdot ');
+            expression = expression.replace(/x(\d+)/g, 'x_{$1}');
+
+            previewElement.innerHTML = `\\( ${expression} \\)`;
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([previewElement]).catch(err => console.error('MathJax Error:', err));
+            }
+        };
+        
+        const addConstraint = () => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-3 fade-in';
+            div.innerHTML = `
+                <input type="text" class="input-field flex-grow rounded-lg">
+                <div class="latex-preview"></div>
+                <button class="remove-constraint-btn text-red-500/70 hover:text-red-500 transition-all transform hover:scale-125 focus:outline-none" title="Eliminar restricción">
+                    <i class="fas fa-times-circle text-2xl"></i>
+                </button>
+            `;
+            constraintsContainer.appendChild(div);
+
+            const input = div.querySelector('input');
+            const preview = div.querySelector('.latex-preview');
+            input.addEventListener('input', () => updateLatex(input, preview));
+            div.querySelector('.remove-constraint-btn').addEventListener('click', () => {
+                div.classList.remove('fade-in');
+                div.classList.add('fade-out');
+                setTimeout(() => div.remove(), 400);
+            });
+            updatePlaceholders();
+        };
+
+        const updatePlaceholders = () => {
+            numVariables = parseInt(numVariablesSelect.value);
+            const vars = Array.from({ length: numVariables }, (_, i) => `${i+1}x${i + 1}`).join(' + ');
+            objectiveFunctionInput.placeholder = `Ej: ${vars}`;
+            constraintsContainer.querySelectorAll('input').forEach(input => {
+                input.placeholder = `Ej: ${vars} <= 10`;
+            });
+            resultsSummaryPanel.classList.add('hidden');
+            detailsModal.classList.add('hidden');
+        };
+
+        const showToast = (message, type = 'error') => {
+            const colors = {
+                error: 'from-red-500 to-pink-500',
+                success: 'from-green-400 to-emerald-500',
+                info: 'from-blue-400 to-indigo-500'
+            };
+            const icon = {
+                error: 'fa-exclamation-triangle',
+                success: 'fa-check-circle',
+                info: 'fa-info-circle'
+            }
+            const toast = document.createElement('div');
+            toast.className = `fixed top-5 right-5 p-4 rounded-xl shadow-2xl text-white bg-gradient-to-br ${colors[type]} transform translate-x-full opacity-0 transition-all duration-500 ease-out z-[200] border-2 border-white/30 backdrop-blur-sm`;
+            toast.innerHTML = `<i class="fas ${icon[type]} mr-3 fa-lg"></i> <span class="font-semibold">${message}</span>`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 4000);
+        };
+
+        const parseProblem = () => {
+            try {
+                const objectiveStr = objectiveFunctionInput.value.trim();
+                const type = objectiveTypeSelect.value;
+                numVariables = parseInt(numVariablesSelect.value);
+                if (isNaN(numVariables) || numVariables < 2) throw new Error("El número de variables debe ser 2 o mayor.");
+                const variables = Array.from({ length: numVariables }, (_, i) => `x${i + 1}`);
+
+                if (!objectiveStr) throw new Error('La función objetivo no puede estar vacía.');
+
+                const parseExpression = (expr) => {
+                    const coeffs = {};
+                    variables.forEach(v => coeffs[v] = 0);
+                    let normalizedExpr = expr.replace(/\s/g, '').replace(/([+-])/g, ' $1').trim();
+                    if (!normalizedExpr.startsWith('+') && !normalizedExpr.startsWith('-')) {
+                        normalizedExpr = '+ ' + normalizedExpr;
+                    }
+                    
+                    const terms = normalizedExpr.match(/([+-])\s*(\d*\.?\d*)?\*?(x(\d+))/g);
+                    if (!terms && normalizedExpr.replace(/[+-]\s*/, '') !== '') throw new Error(`Expresión inválida: "${expr}"`);
+                    if (!terms) return coeffs;
+
+                    terms.forEach(term => {
+                        const parts = term.match(/([+-])\s*(\d*\.?\d*)?\*?(x(\d+))/);
+                        if (!parts) throw new Error(`Término inválido: "${term}"`);
+                        
+                        const sign = parts[1] === '-' ? -1 : 1;
+                        const coeffStr = parts[2];
+                        const varName = parts[3];
+                        const varIndex = parseInt(parts[4], 10);
+
+                        if (varIndex > numVariables) throw new Error(`Variable no definida: "${varName}". El problema tiene ${numVariables} variables.`);
+
+                        const coeff = (coeffStr === '' || coeffStr === undefined) ? 1 : parseFloat(coeffStr);
+                        coeffs[varName] += sign * coeff;
+                    });
+                    return coeffs;
+                };
+
+                const objective = { direction: type, name: "z", vars: parseExpression(objectiveStr) };
+
+                const constraints = [];
+                const constraintInputs = constraintsContainer.querySelectorAll('input');
+                for (let i = 0; i < constraintInputs.length; i++) {
+                    const constraintStr = constraintInputs[i].value.trim();
+                    if (!constraintStr) continue;
+
+                    const match = constraintStr.match(/^(.*)\s*(<=|>=|=)\s*(-?\d+\.?\d*)$/);
+                    if (!match) throw new Error(`Formato de restricción inválido en la línea ${i + 1}: "${constraintStr}"`);
+
+                    constraints.push({
+                        vars: parseExpression(match[1]),
+                        op: match[2],
+                        b: parseFloat(match[3]),
+                        str: constraintStr
+                    });
+                }
+
+                if (constraints.length === 0) throw new Error('Debe agregar al menos una restricción.');
+
+                return { objective, constraints, variables };
+            } catch (e) {
+                showToast(e.message, 'error');
+                return null;
+            }
+        };
+
+        const solveProblem = () => {
+            const problemData = parseProblem();
+            if (!problemData) return;
+            
+            lastProblemData = problemData;
+
+            resultsSummaryPanel.classList.remove('hidden');
+            resultsSummaryPanel.classList.add('fade-in');
+            summaryOutput.innerHTML = `<div class="flex items-center justify-center p-8"><i class="fas fa-spinner fa-spin fa-3x mr-4 text-indigo-400"></i> <span class="text-2xl">Optimizando...</span></div>`;
+
+            setTimeout(() => {
+                let result;
+                if (numVariables === 2) {
+                    result = solveGraphical(problemData);
+                } else {
+                    const solver = new SimplexSolver(problemData);
+                    result = solver.solve();
+                }
+                lastResultData = result;
+                renderSummary(result);
+            }, 100);
+        };
+
+        const solveGraphical = (problem) => {
+            const { objective, constraints } = problem;
+            
+            const allConstraints = constraints.map(c => ({
+                a: c.vars['x1'] || 0, b: c.vars['x2'] || 0, op: c.op, val: c.b, str: c.str
+            }));
+            
+            const axisIntercepts = [];
+            constraints.forEach((c, i) => {
+                const a = c.vars['x1'] || 0, b = c.vars['x2'] || 0, rhs = c.b;
+                if (Math.abs(a) > 1e-9) axisIntercepts.push({x: rhs/a, y: 0, name: `R${i+1} ∩ Eje X`});
+                if (Math.abs(b) > 1e-9) axisIntercepts.push({x: 0, y: rhs/b, name: `R${i+1} ∩ Eje Y`});
+            });
+
+            allConstraints.push({ a: 1, b: 0, op: '>=', val: 0, str: "x₁ ≥ 0" });
+            allConstraints.push({ a: 0, b: 1, op: '>=', val: 0, str: "x₂ ≥ 0" });
+
+            const intersections = [];
+            for (let i = 0; i < allConstraints.length; i++) {
+                for (let j = i + 1; j < allConstraints.length; j++) {
+                    const c1 = allConstraints[i], c2 = allConstraints[j];
+                    const det = c1.a * c2.b - c2.a * c1.b;
+                    if (Math.abs(det) > 1e-9) {
+                        const x = (c1.val * c2.b - c2.val * c1.b) / det;
+                        const y = (c1.a * c2.val - c2.a * c1.val) / det;
+                        intersections.push({ x, y });
+                    }
+                }
+            }
+            
+            const feasibleVertices = intersections.filter(p => {
+                return allConstraints.every(c => {
+                    const val = c.a * p.x + c.b * p.y;
+                    if (c.op === '<=') return val <= c.val + 1e-9;
+                    if (c.op === '>=') return val >= c.val - 1e-9;
+                    if (c.op === '=') return Math.abs(val - c.val) < 1e-9;
+                    return false;
+                });
+            }).filter((p, i, self) => i === self.findIndex(t => Math.abs(t.x - p.x) < 1e-9 && Math.abs(t.y - p.y) < 1e-9));
+
+            if (feasibleVertices.length === 0) {
+                return { feasible: false, message: "La región factible es vacía." };
+            }
+
+            let optimalValue = (objective.direction === 'maximize') ? -Infinity : Infinity;
+            let optimalPoints = [];
+            const verticesResults = [];
+
+            feasibleVertices.forEach(v => {
+                const z = (objective.vars['x1'] || 0) * v.x + (objective.vars['x2'] || 0) * v.y;
+                verticesResults.push({ x: v.x, y: v.y, z: z });
+                
+                const isBetter = (objective.direction === 'maximize' && z > optimalValue + 1e-9) || (objective.direction === 'minimize' && z < optimalValue - 1e-9);
+                if (Math.abs(z - optimalValue) < 1e-9) {
+                    optimalPoints.push(v);
+                } else if (isBetter) {
+                    optimalValue = z;
+                    optimalPoints = [v];
+                }
+            });
+            
+            if (optimalValue === Infinity || optimalValue === -Infinity) {
+                 return { feasible: true, bounded: false, message: "El problema es no acotado." };
+            }
+
+            return {
+                feasible: true, bounded: true, result: optimalValue,
+                optimalPoints, vertices: verticesResults, constraints, axisIntercepts
+            };
+        };
+
+        function renderSummary(result) {
+            showDetailsButton.classList.add('hidden');
+            showGraphButton.classList.add('hidden');
+            
+            if (!result || !result.feasible) {
+                summaryOutput.innerHTML = `<p class="text-red-400 font-bold p-4 text-xl"><i class="fas fa-exclamation-triangle mr-3"></i>${result ? result.message : 'No se encontró una solución factible.'}</p>`;
+                return;
+            }
+
+            let html = `
+                <div class="p-4 rounded-lg bg-gray-500/10">
+                    <p class="text-sm text-gray-400">Estado de la Solución</p>
+                    <p class="text-lg font-bold ${result.bounded ? 'text-green-400' : 'text-yellow-400'}">
+                        <i class="fas ${result.bounded ? 'fa-check-circle' : 'fa-infinity'} mr-2"></i>
+                        ${result.bounded ? 'Solución Óptima Encontrada' : 'Problema No Acotado'}
+                    </p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-500/10 mt-4">
+                    <p class="text-sm text-gray-400">Valor Óptimo (Z)</p>
+                    <p class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-500">${result.result.toFixed(4)}</p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-500/10 mt-4">
+                     <p class="text-sm text-gray-400 mb-2">Punto Óptimo</p>
+                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-center">
+            `;
+            if (result.optimalPoints) { // Método Gráfico
+                result.optimalPoints.forEach(p => {
+                    html += `<span><strong>x₁:</strong> ${p.x.toFixed(3)}</span> <span><strong>x₂:</strong> ${p.y.toFixed(3)}</span>`;
+                });
+                showGraphButton.classList.remove('hidden');
+            } else { // Método Simplex
+                 lastProblemData.variables.forEach(v => {
+                    html += `<div class="p-2 rounded bg-gray-500/10"><strong>${v}:</strong> ${(result[v] || 0).toFixed(4)}</div>`;
+                });
+            }
+            html += `</div></div>`;
+            summaryOutput.innerHTML = html;
+            showDetailsButton.classList.remove('hidden');
+        }
+
+        function showDetailsModal() {
+            if (!lastProblemData || !lastResultData) return;
+            
+            solutionOutput.innerHTML = '';
+            detailsModal.classList.remove('hidden');
+            detailsModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            if (numVariables === 2) {
+                colorPaletteContainer.classList.remove('hidden');
+                solutionOutput.innerHTML = `
+                    <div id="plot-container" class="lg:col-span-3 h-[65vh] lg:h-full relative rounded-2xl overflow-hidden border border-[var(--border-color)]"></div>
+                    <div id="results-text" class="lg:col-span-2 space-y-6 overflow-y-auto pr-2"></div>
+                `;
+                drawGraphicalSolution(lastProblemData, lastResultData, 'plot-container');
+                renderGraphicalTextResults(lastResultData);
+            } else {
+                colorPaletteContainer.classList.add('hidden');
+                solutionOutput.innerHTML = `<div id="results-text" class="lg:col-span-5 space-y-6 overflow-y-auto"></div>`;
+                renderSimplexTextResults(lastResultData);
+            }
+        }
+        
+        function drawGraphicalSolution(problem, result, containerId) {
+            const container = getEl(containerId);
+            if(!container) return;
+            container.innerHTML = `<div id="${containerId}-plot" class="w-full h-full"></div>`;
+            
+            // Obtener colores del tema para un gráfico adaptable
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+            const secondaryTextColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
+            const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
+            const plotBgColor = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--bg-accent-raw').trim()}, 0.3)`;
+            const paperBgColor = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary-raw').trim()}, 0.0)`;
+
+            const { constraints } = problem;
+            const { optimalPoints, vertices, axisIntercepts } = result;
+            const traces = [];
+            const colors = colorSchemes[currentColorSchemeIndex];
+
+            let xMax = 10, yMax = 10;
+            if (vertices && vertices.length > 0) {
+                const allX = [...vertices.map(v => v.x), ...axisIntercepts.map(i => i.x)];
+                const allY = [...vertices.map(v => v.y), ...axisIntercepts.map(i => i.y)];
+                xMax = Math.max(...allX, 10) * 1.25;
+                yMax = Math.max(...allY, 10) * 1.25;
+            }
+
+            // Dibuja los ejes X e Y explícitamente
+            traces.push({
+                x: [-xMax * 5, xMax * 5], y: [0, 0], mode: 'lines',
+                name: 'Eje X', showlegend: false,
+                line: { color: textColor, width: 3, dash: 'solid' }, // Más grueso y color primario
+                hoverinfo: 'none'
+            });
+            traces.push({
+                x: [0, 0], y: [-yMax * 5, yMax * 5], mode: 'lines',
+                name: 'Eje Y', showlegend: false,
+                line: { color: textColor, width: 3, dash: 'solid' }, // Más grueso y color primario
+                hoverinfo: 'none'
+            });
+
+            constraints.forEach((c, i) => {
+                const a = c.vars['x1'] || 0, b = c.vars['x2'] || 0, rhs = c.b;
+                let x_vals = [], y_vals = [];
+                if (Math.abs(b) > 1e-9) {
+                    x_vals = [-xMax * 5, xMax * 5];
+                    y_vals = x_vals.map(x => (rhs - a * x) / b);
+                } else if (Math.abs(a) > 1e-9) {
+                    x_vals = [rhs / a, rhs / a];
+                    y_vals = [-yMax * 5, yMax * 5];
+                }
+                traces.push({ x: x_vals, y: y_vals, mode: 'lines', name: `R${i+1}: ${c.str}`, line: { color: colors[i % colors.length], width: 3 }, hoverinfo: 'name' });
+            });
+
+            // --- ORDENAR Y DIBUJAR POLÍGONO DE LA REGIÓN FACTIBLE (LÓGICA MEJORADA) ---
+            if (vertices && vertices.length > 0) {
+                // Filtra vértices duplicados (muy cercanos) para evitar errores de dibujo
+                const uniqueVertices = [];
+                vertices.forEach(p => {
+                    if (!uniqueVertices.some(q => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6)) {
+                        uniqueVertices.push(p);
+                    }
+                });
+
+                if (uniqueVertices.length >= 3) {
+                    // Ordena antihorario respecto al centroide
+                    const cx = uniqueVertices.reduce((a, p) => a + p.x, 0) / uniqueVertices.length;
+                    const cy = uniqueVertices.reduce((a, p) => a + p.y, 0) / uniqueVertices.length;
+                    uniqueVertices.sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+                    
+                    // Cierra el polígono explícitamente
+                    const xPoly = uniqueVertices.map(p => p.x).concat(uniqueVertices[0].x);
+                    const yPoly = uniqueVertices.map(p => p.y).concat(uniqueVertices[0].y);
+
+                    traces.push({
+                        x: xPoly,
+                        y: yPoly,
+                        fill: 'toself',
+                        fillcolor: 'rgba(129, 140, 248, 0.3)',
+                        line: { color: accentColor, width: 2.5 },
+                        name: 'Región Factible',
+                        hoveron: 'fills',
+                        hoverinfo: 'text',
+                        text: `<b>Región Factible</b><br>Área: ${calculatePolygonArea(uniqueVertices).toFixed(2)} u²`,
+                    });
+                }
+            }
+            
+            if (vertices) {
+                traces.push({
+                    x: vertices.map(p => p.x), y: vertices.map(p => p.y), mode: 'markers+text', name: 'Vértices',
+                    text: vertices.map(p => `(${p.x.toFixed(2)}, ${p.y.toFixed(2)})<br>Z=${p.z.toFixed(2)}`),
+                    textposition: 'top right', textfont: {size: 11, color: secondaryTextColor},
+                    hoverinfo: 'text', marker: { color: accentColor, size: 12, line: { color: '#ffffff', width: 2 } }
+                });
+            }
+            
+            if (axisIntercepts && axisIntercepts.length > 0) {
+                traces.push({
+                    x: axisIntercepts.map(p => p.x), y: axisIntercepts.map(p => p.y), mode: 'markers', name: 'Intersecciones con Ejes',
+                    hovertext: axisIntercepts.map(p => `${p.name}<br>(${p.x.toFixed(2)}, ${p.y.toFixed(2)})`),
+                    hoverinfo: 'text',
+                    marker: { color: '#e31a1c', size: 12, symbol: 'diamond' } // Puntos más grandes y de color rojo
+                });
+            }
+
+            if (optimalPoints && optimalPoints.length > 0) {
+                traces.push({
+                    x: optimalPoints.map(p => p.x), y: optimalPoints.map(p => p.y), mode: 'markers', name: 'Solución Óptima',
+                    marker: { color: '#f59e0b', size: 24, symbol: 'star', line: { color: textColor, width: 2 } }
+                });
+            }
+
+            const layout = {
+                title: { text: '<b>Método Gráfico: Región Factible y Solución</b>', font: { family: 'Lexend, sans-serif', size: 20, color: textColor } },
+                xaxis: { title: '<b>x₁</b>', range: [-1, xMax], showline: true, zeroline: false, showgrid: true, gridcolor: borderColor, ticks: 'outside', tickfont: { color: secondaryTextColor, size: 12 }, titlefont: { color: textColor }, tickwidth: 2, tickcolor: textColor, linecolor: textColor },
+                yaxis: { title: '<b>x₂</b>', range: [-1, yMax], showline: true, zeroline: false, showgrid: true, gridcolor: borderColor, ticks: 'outside', tickfont: { color: secondaryTextColor, size: 12 }, titlefont: { color: textColor }, tickwidth: 2, tickcolor: textColor, linecolor: textColor },
+                showlegend: true, legend: { orientation: 'h', yanchor: 'bottom', y: 1.05, xanchor: 'right', x: 1, bgcolor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary-raw').trim()}, 0.8)`, bordercolor: accentColor, borderwidth: 1, font: { color: textColor } },
+                paper_bgcolor: paperBgColor, 
+                plot_bgcolor: plotBgColor,
+                font: { family: 'Inter, sans-serif', color: textColor },
+                margin: { l: 60, r: 30, b: 50, t: 120 },
+                dragmode: 'pan', // <-- FIX: Permite el arrastre (pan) por defecto. El zoom se puede activar desde la barra de herramientas.
+            };
+
+            const config = { responsive: true, displaylogo: false, modeBarButtonsToRemove: ['sendDataToCloud', 'lasso2d', 'select2d'], displayModeBar: true, scrollZoom: true };
+            
+            const plotDiv = getEl(`${containerId}-plot`);
+            Plotly.newPlot(plotDiv, traces, layout, config);
+        }
+        
+        function renderGraphicalTextResults(result) {
+            const { result: optimalValue, optimalPoints, vertices, axisIntercepts } = result;
+            const resultsTextDiv = getEl('results-text');
+            
+            let html = `<h3 class="text-2xl font-bold mb-4 font-lexend text-[var(--text-primary)]">Análisis de la Solución</h3>`;
+            html += `<div class="p-4 rounded-xl bg-gray-500/10 border border-[var(--border-color)]">`;
+            if (optimalPoints && optimalPoints.length > 0) {
+                html += `<p class="mb-2"><strong><i class="fas fa-trophy text-yellow-400"></i> Valor Óptimo (Z):</strong> <span class="font-bold text-2xl text-green-400">${optimalValue.toFixed(4)}</span></p>`;
+                html += `<p><strong><i class="fas fa-map-marker-alt text-red-400"></i> Punto(s) Óptimo(s):</strong></p>`;
+                html += `<ul class="list-disc list-inside ml-4">${optimalPoints.map(p => `<li>(x₁ = ${p.x.toFixed(4)}, x₂ = ${p.y.toFixed(4)})</li>`).join('')}</ul>`;
+            } else {
+                 html += `<p class="text-red-400 font-bold"><i class="fas fa-exclamation-triangle mr-2"></i>${result.message || 'No se encontró solución.'}</p>`;
+            }
+            html += `</div>`;
+
+            if (vertices && vertices.length > 0) {
+                let regionDescription = '';
+                if (vertices.length === 1) {
+                    regionDescription = 'La región factible es un <b>único punto</b>.';
+                } else if (vertices.length === 2) {
+                    regionDescription = 'La región factible es un <b>segmento de línea</b>.';
+                } else {
+                    const area = calculatePolygonArea(vertices);
+                    regionDescription = `Área: <span class="font-bold text-lg text-[var(--text-primary)] ml-2">${area.toFixed(4)} unidades²</span>`;
+                }
+                html += `<div class="mt-4 p-4 rounded-xl bg-gray-500/10 border border-[var(--border-color)]">
+                            <p><strong><i class="fas fa-ruler-combined text-blue-400 mr-2"></i>Región Factible:</strong>
+                            <span class="ml-2">${regionDescription}</span></p>
+                         </div>`;
+            }
+
+            html += `<h4 class="font-semibold mt-6 mb-3 text-xl font-lexend text-[var(--text-primary)]">Evaluación de Vértices</h4>`;
+            html += `<div class="overflow-auto rounded-xl border border-[var(--border-color)] max-h-60"><table class="w-full text-sm text-left">
+                        <thead class="text-xs uppercase bg-gray-500/10 sticky top-0 backdrop-blur-sm text-[var(--text-header-table)]">
+                            <tr>
+                                <th class="px-6 py-3">Vértice</th>
+                                <th class="px-6 py-3">Coordenadas (x₁, x₂)</th>
+                                <th class="px-6 py-3">Valor de Z</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            if (vertices) {
+                vertices.sort((a,b) => b.z - a.z).forEach((v, i) => {
+                    const isOptimal = optimalPoints.some(p => Math.abs(p.x - v.x) < 1e-9 && Math.abs(p.y - v.y) < 1e-9);
+                    html += `<tr class="border-b border-[var(--border-color)] ${isOptimal ? 'bg-green-500/10' : ''}">
+                                <td class="px-6 py-4 font-medium">${String.fromCharCode(65 + i)}</td>
+                                <td class="px-6 py-4">(${v.x.toFixed(2)}, ${v.y.toFixed(2)})</td>
+                                <td class="px-6 py-4 font-semibold">${v.z.toFixed(2)} ${isOptimal ? '<i class="fas fa-star text-yellow-400 ml-2"></i>' : ''}</td>
+                             </tr>`;
+                });
+            }
+            html += `</tbody></table></div>`;
+            
+            html += `<h4 class="font-semibold mt-6 mb-3 text-xl font-lexend text-[var(--text-primary)]">Intersecciones con Ejes</h4>`;
+            html += `<div class="overflow-auto rounded-xl border border-[var(--border-color)] max-h-60"><table class="w-full text-sm text-left">
+                        <thead class="text-xs uppercase bg-gray-500/10 sticky top-0 backdrop-blur-sm text-[var(--text-header-table)]">
+                            <tr>
+                                <th class="px-6 py-3">Restricción</th>
+                                <th class="px-6 py-3">Punto de Intersección</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            if (axisIntercepts) {
+                axisIntercepts.forEach(p => {
+                    html += `<tr class="border-b border-[var(--border-color)]">
+                                <td class="px-6 py-4 font-medium">${p.name}</td>
+                                <td class="px-6 py-4">(${p.x.toFixed(2)}, ${p.y.toFixed(2)})</td>
+                             </tr>`;
+                });
+            }
+            html += `</tbody></table></div>`;
+            
+            resultsTextDiv.innerHTML = html;
+        }
+
+        function renderSimplexTextResults(result) {
+            const resultsTextDiv = getEl('results-text');
+            
+            let html = `<h3 class="text-2xl font-bold mb-4 font-lexend text-[var(--text-primary)]">Resultados del Método Simplex</h3>`;
+            if (result.feasible) {
+                html += `<div class="p-6 rounded-xl bg-gray-500/10 border border-[var(--border-color)] grid grid-cols-1 md:grid-cols-2 gap-6">`;
+                html += `<div><p class="text-sm text-gray-400">Estado</p><p class="text-lg font-bold ${result.bounded ? 'text-green-400' : 'text-yellow-400'}"><i class="fas ${result.bounded ? 'fa-check-circle' : 'fa-infinity'} mr-2"></i> ${result.bounded ? 'Solución Óptima' : 'No Acotado'}</p></div>`;
+                html += `<div><p class="text-sm text-gray-400">Valor Óptimo (Z)</p><p class="text-lg font-bold text-green-400">${result.result.toFixed(4)}</p></div>`;
+                html += `<div class="md:col-span-2"><p class="text-sm text-gray-400 mb-2">Valores de Variables</p><div class="flex flex-wrap gap-4">`;
+                lastProblemData.variables.forEach(v => {
+                    html += `<div class="p-2 px-3 rounded-lg bg-gray-500/10"><strong>${v}:</strong> ${(result[v] || 0).toFixed(4)}</div>`;
+                });
+                html += `</div></div></div>`;
+
+                const renderTableau = (tableau, varNames, basis, title) => {
+                    let tableHtml = `<div class="mb-8"><p class="font-semibold mt-6 mb-3 text-xl font-lexend text-[var(--text-primary)]">${title}:</p>`;
+                    tableHtml += `<div class="overflow-x-auto rounded-xl border border-[var(--border-color)]"><table class="w-full text-sm text-center">`;
+                    tableHtml += `<thead class="text-xs uppercase bg-gray-500/10 sticky top-0 backdrop-blur-sm text-[var(--text-header-table)]"><tr>`;
+                    let headers = ['Base', ...varNames.map(name => name ? name.replace(/([a-zA-Z])(\d+)/, '$1<sub>$2</sub>') : '??'), 'RHS'];
+                    headers.forEach(h => tableHtml += `<th class="px-4 py-3">${h}</th>`);
+                    tableHtml += `</tr></thead><tbody>`;
+
+                    for (let i = 0; i < tableau.length; i++) {
+                        const isObjRow = i === tableau.length - 1;
+                        const baseVarIndex = isObjRow ? -1 : basis[i];
+                        const baseVarName = isObjRow ? (title.includes('Fase I') ? 'W' : 'Z') : (varNames[baseVarIndex] || '?').replace(/([a-zA-Z])(\d+)/, '$1<sub>$2</sub>');
+                        
+                        tableHtml += `<tr class="border-b border-[var(--border-color)]"><td class="px-4 py-3 font-bold bg-gray-500/10">${baseVarName}</td>`;
+                        tableau[i].forEach(cell => tableHtml += `<td class="px-4 py-3">${Number(cell.toFixed(3))}</td>`);
+                        tableHtml += `</tr>`;
+                    }
+                    tableHtml += `</tbody></table></div></div>`;
+                    return tableHtml;
+                };
+
+                if (result.phase1Iterations && result.phase1Iterations.length > 0) {
+                    html += `<h4 class="font-bold mt-8 mb-2 text-2xl font-lexend text-[var(--text-primary)]">Fase I</h4>`;
+                    result.phase1Iterations.forEach((iter, index) => html += renderTableau(iter, result.solver.varNames, result.solver.basis, `Tabla Fase I - Iteración ${index}`));
+                }
+
+                html += `<h4 class="font-bold mt-8 mb-2 text-2xl font-lexend text-[var(--text-primary)]">Fase II</h4>`;
+                result.iterations.forEach((iter, index) => html += renderTableau(iter, result.solver.varNames, result.solver.basis, `Tabla Fase II - Iteración ${index}`));
+
+            } else {
+                html += `<p class="p-6 rounded-xl bg-red-500/10 text-red-400 font-bold text-lg"><i class="fas fa-exclamation-triangle mr-3"></i>${result.message || 'No se encontró solución.'}</p>`;
+            }
+            resultsTextDiv.innerHTML = html;
+        }
+
+        const clearAll = () => {
+            objectiveFunctionInput.value = '';
+            objectivePreview.innerHTML = '';
+            constraintsContainer.innerHTML = '';
+            addConstraint(); addConstraint(); addConstraint();
+            resultsSummaryPanel.classList.add('hidden');
+            detailsModal.classList.add('hidden');
+            numVariablesSelect.value = "2";
+            updatePlaceholders();
+            showToast('Formulario limpiado', 'success');
+        };
+
+        const exportPDF = () => {
+            const { jsPDF } = window.jspdf;
+            const content = getEl('solution-output');
+            const title = detailsModal.querySelector('h3').innerText;
+
+            showToast('Generando PDF...', 'info');
+            
+            const currentBgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim();
+
+            html2canvas(content, {
+                scale: 2, backgroundColor: currentBgColor, useCORS: true,
+                onclone: (doc) => {
+                    doc.documentElement.className = document.documentElement.className;
+                    const plotContainer = doc.getElementById('plot-container');
+                    if (plotContainer) {
+                        const modebar = plotContainer.querySelector('.modebar');
+                        if (modebar) modebar.style.display = 'none';
+                    }
+                }
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const ratio = canvas.width / canvas.height;
+                let imgWidth = pdfWidth - 20;
+                let imgHeight = imgWidth / ratio;
+                if (imgHeight > pdfHeight - 40) {
+                    imgHeight = pdfHeight - 40;
+                    imgWidth = imgHeight * ratio;
+                }
+                const x = (pdfWidth - imgWidth) / 2, y = 20;
+
+                pdf.setFontSize(18);
+                pdf.text(title, pdfWidth / 2, 15, { align: 'center' });
+                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                pdf.save('solucion_programacion_lineal.pdf');
+                showToast('PDF generado exitosamente.', 'success');
+            }).catch(err => {
+                showToast('Error al generar el PDF.', 'error');
+                console.error("Error en html2canvas:", err);
+            });
+        };
+
+        // --- EVENT LISTENERS ---
+        themeToggleButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeModal.classList.toggle('hidden');
+            themeModal.classList.toggle('show');
+        });
+        
+        document.querySelectorAll('.theme-select-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                applyTheme(theme);
+                themeModal.classList.add('hidden');
+                themeModal.classList.remove('show');
+            });
+        });
+
+        helpButton.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+            helpModal.classList.add('show');
+        });
+        closeHelpModalButton.addEventListener('click', () => {
+            helpModal.classList.remove('show');
+            setTimeout(() => helpModal.classList.add('hidden'), 400);
+        });
+        
+        loadExampleButton.addEventListener('click', () => {
+            numVariablesSelect.value = "2";
+            updatePlaceholders();
+            objectiveFunctionInput.value = "3x1 + 5x2";
+            objectiveTypeSelect.value = "maximize";
+            
+            constraintsContainer.innerHTML = '';
+            const exampleConstraints = ["x1 <= 4", "2x2 <= 12", "3x1 + 2x2 <= 18"];
+            exampleConstraints.forEach(cStr => {
+                addConstraint();
+                constraintsContainer.lastChild.querySelector('input').value = cStr;
+            });
+
+            [objectiveFunctionInput, ...constraintsContainer.querySelectorAll('input')].forEach(input => {
+                const preview = input.parentElement.querySelector('.latex-preview');
+                if(preview) updateLatex(input, preview);
+            });
+
+            helpModal.classList.remove('show');
+            setTimeout(() => helpModal.classList.add('hidden'), 400);
+            showToast('Ejemplo cargado correctamente', 'success');
+        });
+
+        numVariablesSelect.addEventListener('change', updatePlaceholders);
+        addConstraintBtn.addEventListener('click', addConstraint);
+        solveBtn.addEventListener('click', solveProblem);
+        clearBtn.addEventListener('click', clearAll);
+        objectiveFunctionInput.addEventListener('input', () => updateLatex(objectiveFunctionInput, objectivePreview));
+        showDetailsButton.addEventListener('click', showDetailsModal);
+        
+        showGraphButton.addEventListener('click', () => {
+            graphOnlyModal.classList.remove('hidden');
+            graphOnlyModal.classList.add('show');
+            setTimeout(() => {
+                 drawGraphicalSolution(lastProblemData, lastResultData, 'graph-only-container');
+            }, 50); // Delay to allow modal transition
+        });
+
+        closeDetailsModalButton.addEventListener('click', () => {
+            detailsModal.classList.remove('show');
+            setTimeout(() => {
+                detailsModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 400);
+        });
+        
+        closeGraphOnlyModal.addEventListener('click', () => {
+            graphOnlyModal.classList.remove('show');
+            setTimeout(() => {
+                graphOnlyModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 400);
+        });
+        
+        colorPaletteBtn.addEventListener('click', () => {
+            currentColorSchemeIndex = (currentColorSchemeIndex + 1) % colorSchemes.length;
+            if (lastProblemData && lastResultData) {
+                drawGraphicalSolution(lastProblemData, lastResultData, 'plot-container');
+                showToast('Paleta de colores cambiada', 'info');
+            }
+        });
+        exportPdfButton.addEventListener('click', exportPDF);
+        
+        // Cerrar modales al hacer clic fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.classList.remove('show');
+                setTimeout(() => helpModal.classList.add('hidden'), 400);
+            }
+            if (e.target === themeModal) {
+                themeModal.classList.remove('show');
+                setTimeout(() => themeModal.classList.add('hidden'), 400);
+            }
+             if (e.target === graphOnlyModal) {
+                graphOnlyModal.classList.remove('show');
+                setTimeout(() => graphOnlyModal.classList.add('hidden'), 400);
+            }
+        });
+
+
+        // --- INICIALIZACIÓN ---
+        applyTheme(currentTheme);
+        addConstraint(); addConstraint(); addConstraint();
+        updatePlaceholders();
+    });
+    </script>
+</body>
+</html>
